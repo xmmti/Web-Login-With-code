@@ -8,8 +8,7 @@
         Else
             If Form1.IG_Send_Code(_choice, Cookie_, URL_path) Then
                 Me.Text &= " - Wait To Enter Code"
-                TextBox1.Enabled = True
-                Button2.Enabled = True
+                Button1.Enabled = False
             Else
                 MsgBox("Someting is worng!", MsgBoxStyle.Critical)
             End If
@@ -32,5 +31,6 @@
         Else
             MsgBox("Someting is worng!", MsgBoxStyle.Critical)
         End If
+        Button2.Enabled = True
     End Sub
 End Class
