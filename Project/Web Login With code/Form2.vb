@@ -27,6 +27,7 @@
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
         If Form1.IG_Enter_Code(TextBox1.Text, Cookie_, URL_path) Then
             MsgBox("logged !!")
+            Form1.Label3.Text = "logged"
             Me.Hide()
         Else
             MsgBox("Someting is worng!", MsgBoxStyle.Critical)

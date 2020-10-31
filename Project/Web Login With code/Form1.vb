@@ -2,6 +2,8 @@
 Imports System.Net
 Imports System.IO
 Imports System.Web.Script.Serialization
+Imports System.ComponentModel
+
 Public Class Form1
     Public cookie_ As New Cookies_instagram
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
@@ -37,6 +39,7 @@ Public Class Form1
             MsgBox("Error, Worng info!!", MsgBoxStyle.Critical)
         ElseIf data_login Then 'Done Login
             MsgBox("logged !!", MsgBoxStyle.Information)
+            Label3.Text = "logged"
         ElseIf Not Regex.IsMatch(data_login.ToString.ToLower, "true|false") Then
             MsgBox(data_login)
         ElseIf IsNumeric(data_login) Then
@@ -52,7 +55,7 @@ Public Class Form1
             w.Headers.Add("Accept: */*")
             w.Headers.Add("Content-Type: application/x-www-form-urlencoded")
             w.Headers.Add("X-Instagram-AJAX: 1")
-            w.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36")
+            w.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36")
             w.Headers.Add("X-Requested-With: XMLHttpRequest")
             w.Headers.Add("X-CSRFToken: missing")
             w.Headers.Add("X-IG-App-ID: 936619743392459")
@@ -83,6 +86,8 @@ Public Class Form1
                     Return {JSONRSP("checkpoint_url"), ig_did, cs, _mid}
                 ElseIf respon_.Contains("""status"": ""fail""") AndAlso respon_.Contains("error_type") Then
                     Dim JSONRSP As Object = New JavaScriptSerializer().Deserialize(Of Object)(respon_)
+                ElseIf respon_.Contains("Please wait a few minutes") AndAlso response.StatusCode.ToString.Contains("403") Then
+                    MsgBox("429 Too Many Requests")
                 End If
 
             End Try
@@ -94,7 +99,7 @@ Public Class Form1
         Using w As New WebClient
             w.Headers.Add("Accept: */*")
             w.Headers.Add("Content-Type: application/x-www-form-urlencoded")
-            w.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36")
+            w.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36")
             w.Headers.Add("Cookie", Cookies)
             Try
                 Dim respon_ As String = w.DownloadString("https://i.instagram.com" & URL_ & "?__a=1")
@@ -141,7 +146,7 @@ Public Class Form1
             w.Headers.Add("Accept: */*")
             w.Headers.Add("Content-Type: application/x-www-form-urlencoded")
             w.Headers.Add("X-Instagram-AJAX: 1")
-            w.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36")
+            w.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36")
             w.Headers.Add("X-Requested-With: XMLHttpRequest")
             w.Headers.Add("X-CSRFToken", Regex.Match(cookies, "csrftoken=(.*?);").Groups(1).Value)
             w.Headers.Add("X-IG-App-ID: 936619743392459")
@@ -169,7 +174,7 @@ Public Class Form1
             w.Headers.Add("Accept: */*")
             w.Headers.Add("Content-Type: application/x-www-form-urlencoded")
             w.Headers.Add("X-Instagram-AJAX: 1")
-            w.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36")
+            w.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36")
             w.Headers.Add("X-Requested-With: XMLHttpRequest")
             w.Headers.Add("X-CSRFToken", Regex.Match(cookies, "csrftoken=(.*?);").Groups(1).Value)
             w.Headers.Add("X-IG-App-ID: 936619743392459")
@@ -250,9 +255,33 @@ Public Class Form1
         Function get_temp_cookie()
             Return tempCookie
         End Function
+        Function get_cookies() As String
+            Return _fullStringCookies.ToString()
+        End Function
     End Class
 
     Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
         TextBox2.UseSystemPasswordChar = Not CheckBox1.Checked
+    End Sub
+    Function IG_logOut(ByVal cookies_ As String)
+        Dim w As New WebClient
+        w.Headers.Add("X-Instagram-AJAX: 1")
+        w.Headers.Add("Content-Type: application/x-www-form-urlencoded")
+        w.Headers.Add("Accept: */*")
+        w.Headers.Add("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36")
+        w.Headers.Add("X-Requested-With: XMLHttpRequest")
+        w.Headers.Add("X-CSRFToken", Regex.Match(cookies_, "csrftoken=(.*?)(;|$)").Groups(1).Value)
+        w.Headers.Add("Sec-Fetch-Site: same-origin")
+        w.Headers.Add("Sec-Fetch-Mode: cors")
+        w.Headers.Add("Sec-Fetch-Dest: empty")
+        w.Headers.Add(cookies_)
+        Dim respone As String = w.UploadString("https://www.instagram.com/accounts/logout/ajax/", "POST", "one_tap_app_login=0")
+    End Function
+
+    Private Sub Form1_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
+        If cookie_.get_cookies().ToString.Length > 0 Then
+            IG_logOut(cookie_.get_cookies())
+        End If
+        End
     End Sub
 End Class
